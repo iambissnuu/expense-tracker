@@ -1,14 +1,15 @@
 class Category {
   int id;
   String title;
-  String Description;
   Category({
     required this.id,
     required this.title,
-    required this.Description,
   });
 
   @override
-  String toString() =>
-      'Category(id: $id, title: $title, Description: $Description)';
+  String toString() => 'Category(id: $id, title: $title)';
+
+  factory Category.fromValue(String id, String title) {
+    return Category(id: int.parse(id), title: title);
+  }
 }
