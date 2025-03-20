@@ -1,6 +1,7 @@
 class Category {
   int id;
   String title;
+
   Category({
     required this.id,
     required this.title,
@@ -9,7 +10,16 @@ class Category {
   @override
   String toString() => 'Category(id: $id, title: $title)';
 
-  factory Category.fromValue(String id, String title) {
-    return Category(id: int.parse(id), title: title);
+  /// Convert Category to a CSV row format
+  List<dynamic> toCsvRow() {
+    return [id, title];
+  }
+
+  /// Create a Category object from a CSV row
+  factory Category.fromCsvRow(List<dynamic> row) {
+    return Category(
+      id: int.parse(row[0].toString()),
+      title: row[1].toString(),
+    );
   }
 }
