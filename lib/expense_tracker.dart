@@ -20,33 +20,6 @@ class ExpenseTracker {
   ExpenseTracker(
       {this.transactionsFile = './lib/transactions.csv',
       this.categoriesFile = './lib/categories.csv'}) {
-    File file = File(transactionsFile);
-    Random random = Random();
-    for (int i = 0; i < 10; i++) {
-      final t = Transaction(
-        id: i + 1,
-        amount: (random.nextDouble() * 1000).roundToDouble(),
-        categoryId: random.nextInt(8) + 1,
-        title: 'Random buy',
-        transactionDt: DateTime(2025, 3, random.nextInt(31) + 1),
-      );
-      // _transactions.add(t);
-      // file.writeAsStringSync(t.toCsvRow().join(','), mode: FileMode.append);
-      // file.writeAsStringSync(',\n', mode: FileMode.append);
-    }
-    // saveTransactions();
-    // List<List<dynamic>> rows = [
-    //   Category(id: 1, title: 'Grocery'),
-    //   Category(id: 2, title: 'Entertainment'),
-    //   Category(id: 3, title: 'Food & Dining'),
-    //   Category(id: 4, title: 'Fuel'),
-    //   Category(id: 5, title: 'Automotive'),
-    //   Category(id: 6, title: 'Bills & Utilities'),
-    //   Category(id: 7, title: 'Travel & Vacation'),
-    //   Category(id: 8, title: 'Donations'),
-    // ].map((t) => t.toCsvRow()).toList();
-    // File(categoriesFile)
-    //     .writeAsStringSync(const ListToCsvConverter().convert(rows));
     loadCategories();
     loadTransactions();
   }
