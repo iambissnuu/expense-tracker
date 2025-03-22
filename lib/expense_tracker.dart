@@ -9,7 +9,9 @@ class ExpenseTracker {
   final String transactionsFile;
   final String categoriesFile;
 
-  ExpenseTracker({this.transactionsFile = './lib/transactions.csv', this.categoriesFile = './lib/categories.csv'}) {
+  ExpenseTracker(
+      {this.transactionsFile = './lib/transactions.csv',
+      this.categoriesFile = './lib/categories.csv'}) {
     readCategories();
     loadTransactions();
   }
@@ -17,15 +19,15 @@ class ExpenseTracker {
   void start(List<String> arguments) {
     while (true) {
       print('\n===== Expense Tracker Menu =====');
-      print('1️.  Add Expense');
-      print('2️.  View All Expenses');
+      print('1.  Add Expense');
+      print('2.  View All Expenses');
       print('3.  Filter Expenses by Category');
-      print('4️.  View Categories');
-      print('5️.  Exit');
+      print('4.  View Categories');
+      print('5.  Exit');
       print('==============================');
       stdout.write('Choose an option: ');
       final input = stdin.readLineSync();
-      
+
       switch (input) {
         case '1':
           _addExpense();
@@ -41,10 +43,10 @@ class ExpenseTracker {
           break;
         case '5':
           print('Thank you for using our program!');
-          saveTransactions(); 
+          saveTransactions();
           return;
         default:
-          print('❌❌ Invalid choice. Try again.❌❌');
+          print('Please provide a valid choice');
       }
     }
   }
@@ -53,7 +55,8 @@ class ExpenseTracker {
     File file = File(categoriesFile);
     if (file.existsSync()) {
       try {
-        List<List<dynamic>> rows = const CsvToListConverter().convert(file.readAsStringSync());
+        List<List<dynamic>> rows =
+            const CsvToListConverter().convert(file.readAsStringSync());
         for (var row in rows) {
           if (row.length >= 2) {
             final id = int.parse(row[0].toString());
@@ -62,10 +65,10 @@ class ExpenseTracker {
           }
         }
       } catch (e) {
-        print('⚠⚠⚠⚠⚠⚠⚠ Error reading categories CSV file: $e');
+        print('Error reading categories CSV file: $e');
       }
     } else {
-      print('⚠⚠⚠⚠⚠⚠⚠ Could not find categories CSV file.');
+      print('Could not find categories CSV file.');
     }
   }
 
@@ -73,21 +76,23 @@ class ExpenseTracker {
     File file = File(transactionsFile);
     if (file.existsSync()) {
       try {
-        List<List<dynamic>> rows = const CsvToListConverter().convert(file.readAsStringSync());
+        List<List<dynamic>> rows =
+            const CsvToListConverter().convert(file.readAsStringSync());
         for (var row in rows) {
           _transactions.add(Transaction.fromCsvRow(row));
         }
       } catch (e) {
-        print('⚠⚠⚠⚠⚠⚠⚠ Error reading transactions CSV file: $e');
+        print('Error reading transactions CSV file: $e');
       }
     } else {
-      print('⚠⚠⚠⚠⚠⚠⚠ No previous transactions matched. Start fresh.');
+      print('No previous transactions matched. Start fresh.');
     }
   }
 
   void saveTransactions() {
     List<List<dynamic>> rows = _transactions.map((t) => t.toCsvRow()).toList();
-    File(transactionsFile).writeAsStringSync(const ListToCsvConverter().convert(rows));
+    File(transactionsFile)
+        .writeAsStringSync(const ListToCsvConverter().convert(rows));
   }
 
   void _addExpense() {
@@ -99,8 +104,10 @@ class ExpenseTracker {
     stdout.write('Category ID: ');
     int? categoryId = int.tryParse(stdin.readLineSync() ?? '');
 
-    if (amount == null || categoryId == null || !_categories.containsKey(categoryId)) {
-      print('❌❌❌ Invalid input. Please enter a valid amount and category ID.❌❌❌');
+    if (amount == null ||
+        categoryId == null ||
+        !_categories.containsKey(categoryId)) {
+      print(' Invalid input. Please enter a valid amount and category ID.');
       return;
     }
 
@@ -111,9 +118,9 @@ class ExpenseTracker {
       title: title,
       transactionDt: DateTime.now(),
     );
-    
+
     _transactions.add(transaction);
-    saveTransactions(); // ✅ Save immediately after adding
+    saveTransactions();
     print('Expense added successfully!');
   }
 
@@ -133,11 +140,12 @@ class ExpenseTracker {
     int? categoryId = int.tryParse(stdin.readLineSync() ?? '');
 
     if (categoryId == null || !_categories.containsKey(categoryId)) {
-      print('❌ Invalid category ID.❌');
+      print('Invalid category ID.');
       return;
     }
 
-    var filtered = _transactions.where((exp) => exp.categoryId == categoryId).toList();
+    var filtered =
+        _transactions.where((exp) => exp.categoryId == categoryId).toList();
     if (filtered.isEmpty) {
       print(' No expenses for this category.');
       return;
