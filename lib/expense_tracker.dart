@@ -1,7 +1,15 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:csv/csv.dart';
+import 'package:expense_tracker/date_check_extension.dart';
+import 'package:intl/intl.dart';
 import 'category.dart';
 import 'transaction.dart';
+
+void main(List<String> arguments) {
+  ExpenseTracker tracker = ExpenseTracker();
+  tracker.start(arguments);
+}
 
 class ExpenseTracker {
   Map<int, Category> _categories = {};
@@ -12,7 +20,34 @@ class ExpenseTracker {
   ExpenseTracker(
       {this.transactionsFile = './lib/transactions.csv',
       this.categoriesFile = './lib/categories.csv'}) {
-    readCategories();
+    File file = File(transactionsFile);
+    Random random = Random();
+    for (int i = 0; i < 10; i++) {
+      final t = Transaction(
+        id: i + 1,
+        amount: (random.nextDouble() * 1000).roundToDouble(),
+        categoryId: random.nextInt(8) + 1,
+        title: 'Random buy',
+        transactionDt: DateTime(2025, 3, random.nextInt(31) + 1),
+      );
+      // _transactions.add(t);
+      // file.writeAsStringSync(t.toCsvRow().join(','), mode: FileMode.append);
+      // file.writeAsStringSync(',\n', mode: FileMode.append);
+    }
+    // saveTransactions();
+    // List<List<dynamic>> rows = [
+    //   Category(id: 1, title: 'Grocery'),
+    //   Category(id: 2, title: 'Entertainment'),
+    //   Category(id: 3, title: 'Food & Dining'),
+    //   Category(id: 4, title: 'Fuel'),
+    //   Category(id: 5, title: 'Automotive'),
+    //   Category(id: 6, title: 'Bills & Utilities'),
+    //   Category(id: 7, title: 'Travel & Vacation'),
+    //   Category(id: 8, title: 'Donations'),
+    // ].map((t) => t.toCsvRow()).toList();
+    // File(categoriesFile)
+    //     .writeAsStringSync(const ListToCsvConverter().convert(rows));
+    loadCategories();
     loadTransactions();
   }
 
@@ -21,7 +56,7 @@ class ExpenseTracker {
       print('\n===== Expense Tracker Menu =====');
       print('1.  Add Expense');
       print('2.  View All Expenses');
-      print('3.  Filter Expenses by Category');
+      print('3.  Filter Expenses');
       print('4.  View Categories');
       print('5.  Exit');
       print('==============================');
@@ -36,7 +71,7 @@ class ExpenseTracker {
           _viewExpenses();
           break;
         case '3':
-          _filterExpensesByCategory();
+          _filterExpenses();
           break;
         case '4':
           _viewCategories();
@@ -51,7 +86,7 @@ class ExpenseTracker {
     }
   }
 
-  void readCategories() {
+  void loadCategories() {
     File file = File(categoriesFile);
     if (file.existsSync()) {
       try {
@@ -59,11 +94,12 @@ class ExpenseTracker {
             const CsvToListConverter().convert(file.readAsStringSync());
         for (var row in rows) {
           if (row.length >= 2) {
-            final id = int.parse(row[0].toString());
-            final title = row[1].toString();
+            final id = int.parse(row[1].toString());
+            final title = row[0].toString();
             _categories[id] = Category(id: id, title: title);
           }
         }
+        print('Loaded ${_categories.length} categories');
       } catch (e) {
         print('Error reading categories CSV file: $e');
       }
@@ -81,6 +117,7 @@ class ExpenseTracker {
         for (var row in rows) {
           _transactions.add(Transaction.fromCsvRow(row));
         }
+        print('Loaded ${rows.length} transactions');
       } catch (e) {
         print('Error reading transactions CSV file: $e');
       }
@@ -135,17 +172,50 @@ class ExpenseTracker {
     }
   }
 
-  void _filterExpensesByCategory() {
-    print('\nEnter Category ID to filter expenses:');
+  void _filterExpenses() {
+    stdout.write(
+        '\nEnter Category ID to filter expenses (Don\'t enter if none):');
     int? categoryId = int.tryParse(stdin.readLineSync() ?? '');
 
-    if (categoryId == null || !_categories.containsKey(categoryId)) {
+    if (categoryId != null && !_categories.containsKey(categoryId)) {
       print('Invalid category ID.');
       return;
     }
 
-    var filtered =
-        _transactions.where((exp) => exp.categoryId == categoryId).toList();
+    stdout.write('Enter the from date for date specific filtering, '
+        'don\'t enter if no from date (MM-DD-YYYY) :');
+    String? fromDate = stdin.readLineSync();
+
+    stdout.write('Enter the to date for date specific filtering, '
+        'don\'t enter if no to date (MM-DD-YYYY) :');
+    String? toDate = stdin.readLineSync();
+
+    DateTime? fromDt;
+    DateTime? toDt;
+    if ((fromDate != null && fromDate.isNotEmpty) ||
+        (toDate != null && toDate.isNotEmpty)) {
+      fromDt = (fromDate != null && fromDate.isNotEmpty)
+          ? DateFormat('MM-dd-yyyy').parse(fromDate.trim())
+          : null;
+      toDt = (toDate != null && toDate.isNotEmpty)
+          ? DateFormat('MM-dd-yyyy').parse(toDate.trim())
+          : null;
+    }
+    bool filteringFromTransactionsMap(Transaction exp) {
+      return categoryId != null
+          ? exp.categoryId == categoryId
+          : true &&
+              (fromDt != null
+                  ? exp.transactionDt.isSameDateAs(fromDt) ||
+                      exp.transactionDt.isAfter(fromDt)
+                  : true) &&
+              (toDt != null
+                  ? exp.transactionDt.isSameDateAs(toDt) ||
+                      exp.transactionDt.isBefore(toDt)
+                  : true);
+    }
+
+    var filtered = _transactions.where(filteringFromTransactionsMap).toList();
     if (filtered.isEmpty) {
       print(' No expenses for this category.');
       return;

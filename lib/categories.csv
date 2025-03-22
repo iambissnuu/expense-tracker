@@ -1,8 +1,8 @@
-1,Groceries
-2,Food&Dining
-3,Donations
-4,Fuel
-5,Automotive
-6,Bills & Utilies
-7,Travel & Vacation
-8,Entertainment
+Grocery,1
+Entertainment,2
+Food & Dining,3
+Fuel,4
+Automotive,5
+Bills & Utilities,6
+Travel & Vacation,7
+Donations,8

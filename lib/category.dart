@@ -12,14 +12,14 @@ class Category {
 
   /// Convert Category to a CSV row format
   List<dynamic> toCsvRow() {
-    return [id, title];
+    return [title, id];
   }
 
   /// Create a Category object from a CSV row
   factory Category.fromCsvRow(List<dynamic> row) {
     return Category(
-      id: int.parse(row[0].toString()),
-      title: row[1].toString(),
+      id: int.parse(row[1].toString()),
+      title: row[0].toString(),
     );
   }
 }
